@@ -1,4 +1,4 @@
-import cv2  # opencv 사용
+import cv2
 import numpy as np
 
 
@@ -31,7 +31,7 @@ def region_of_interest(img, vertices, color3=(255, 255, 255), color1=255):  # RO
     return ROI_image
 
 
-def draw_lines(img, lines, color=[0, 0, 255], thickness=10):  # 선 그리기
+def draw_lines(img, lines, color=[0, 0, 255], thickness=5):  # 선 그리기
     for line in lines:
         for x1, y1, x2, y2 in line:
             cv2.line(img, (x1, y1), (x2, y2), color, thickness)
@@ -40,14 +40,13 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=10):  # 선 그리기
 def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):  # 허프 변환
     lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len,
                             maxLineGap=max_line_gap)
-    line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-    draw_lines(line_img, lines)
 
-    return line_img
+    return lines
 
 
 def weighted_img(img, initial_img, α=1, β=1., λ=0.):  # 두 이미지 operlap 하기
-    return cv2.addWeighted(initial_img, α, img, β, λ)
+    # return cv2.addWeighted(initial_img, α, img, β, λ)
+    return cv2.addWeighted(initial_img, 0.5, img, 0.5, 1)
 
 
 cap = cv2.VideoCapture("../../video/ex1.mp4")
@@ -65,12 +64,33 @@ while (cap.isOpened()):
             dtype=np.int32)
 
         ROI_img = region_of_interest(canny_img, vertices)
-        hough_img = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
+        line_arr = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
+        line_arr = np.squeeze(line_arr)
+
+        # 기울기 구하기
+        slope_degree = (np.arctan2(line_arr[:, 1] - line_arr[:, 3], line_arr[:, 0] - line_arr[:, 2]) * 180) / np.pi
+
+        # 수평 기울기 제한
+        line_arr = line_arr[np.abs(slope_degree) < 160]
+        slope_degree = slope_degree[np.abs(slope_degree) < 160]
+
+        # 수직 기울기 제한
+        line_arr = line_arr[np.abs(slope_degree) > 95]
+        slope_degree = slope_degree[np.abs(slope_degree) > 95]
+
+        # 필터링된 직선 버리기
+        L_lines, R_lines = line_arr[(slope_degree > 0), :], line_arr[(slope_degree < 0), :]
+        temp = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
+        L_lines, R_lines = L_lines[:, None], R_lines[:, None]
 
     except:
         continue
 
-    result = weighted_img(hough_img, image)
+    # 직선 그리기
+    draw_lines(temp, L_lines)
+    draw_lines(temp, R_lines)
+
+    result = weighted_img(temp, image)
     cv2.imshow('result', result)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
