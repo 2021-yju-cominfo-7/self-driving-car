@@ -46,7 +46,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):  # 허�
 
 def weighted_img(img, initial_img, α=1, β=1., λ=0.):  # 두 이미지 operlap 하기
     # return cv2.addWeighted(initial_img, α, img, β, λ)
-    return cv2.addWeighted(initial_img, 0.5, img, 0.5, 1)
+    return cv2.addWeighted(initial_img, 0.8, img, 1, 1)
 
 
 cap = cv2.VideoCapture("../../video/ex1.mp4")
@@ -73,6 +73,7 @@ while (cap.isOpened()):
 
         ROI_img = region_of_interest(canny_img, vertices)
         line_arr = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
+        # line_arr = hough_lines(canny_img, 1, 1 * np.pi / 180, 30, 10, 20)
         line_arr = np.squeeze(line_arr)
 
         # 기울기 구하기

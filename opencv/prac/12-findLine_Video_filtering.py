@@ -65,6 +65,7 @@ while (cap.isOpened()):
 
         ROI_img = region_of_interest(canny_img, vertices)
         line_arr = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
+        # line_arr = hough_lines(canny_img, 1, 1 * np.pi / 180, 30, 10, 20)
         line_arr = np.squeeze(line_arr)
 
         # 기울기 구하기
