@@ -6,12 +6,12 @@ def grayscale(img):  # 흑백이미지로 변환
     return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
 
-def canny(img, low_threshold, high_threshold):  # Canny 알고리즘
-    return cv2.Canny(img, low_threshold, high_threshold)
-
-
 def gaussian_blur(img, kernel_size):  # 가우시안 필터
     return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
+
+
+def canny(img, low_threshold, high_threshold):  # Canny 알고리즘
+    return cv2.Canny(img, low_threshold, high_threshold)
 
 
 def region_of_interest(img, vertices, color3=(255, 255, 255), color1=255):  # ROI 셋팅
@@ -37,7 +37,7 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=5):  # 선 그리기
             cv2.line(img, (x1, y1), (x2, y2), color, thickness)
 
 
-def draw_fit_line(img, lines, color=[255, 0, 0], thickness=10):  # 대표선 그리기
+def draw_fit_line(img, lines, color=[255, 0, 0], thickness=5):  # 대표선 그리기
     cv2.line(img, (lines[0], lines[1]), (lines[2], lines[3]), color, thickness)
 
 
@@ -58,7 +58,7 @@ def get_fitline(img, f_lines):
     lines = lines.reshape(lines.shape[0] * 2, 2)
 
     rows, cols = img.shape[:2]
-    output = cv2.fitLine(lines, cv2.DIST_L1, 0, 0.01, 0.01)
+    output = cv2.fitLine(lines, cv2.DIST_L2, 0, 0.01, 0.01)
     vx, vy, x, y = output[0], output[1], output[2], output[3]
 
     leftY = int((-x * vy / vx) + y)
@@ -83,16 +83,29 @@ out = cv2.VideoWriter('output.avi', fourcc, 30.0, (int(width), int(height)))
 
 while (cap.isOpened()):
     ret, image = cap.read()
+
+    if image is None:
+        break
+
     height, width = image.shape[:2]
     try:
 
         gray_img = grayscale(image)
-        blur_img = gaussian_blur(gray_img, 3)
+        blur_img = gaussian_blur(gray_img, 5)
+
+        # 미디안 블러링으로 좌우의 배수구망 이미지 제거
+        blur_img = cv2.medianBlur(blur_img, 9)
         canny_img = canny(blur_img, 200, 400)
+        # TODO 이미지 프로세싱 결과 점검
+        # cv2.imshow("image_processing", canny_img)
 
         vertices = np.array(
-            [[(0, height / 2 + 50), (width / 2 - 100, 50), (width / 2 + 100, 50), (width, height / 2 + 50)]],
+            [[(0, height / 2 + 100), (width / 2 - 200, 70), (width / 2 + 200, 70), (width, height / 2 + 100)]],
             dtype=np.int32)
+
+        # TODO ROI 영역 설정 결과 점검
+        # check_roi = region_of_interest(image, vertices)
+        # cv2.imshow("ROI", check_roi)
 
         ROI_img = region_of_interest(canny_img, vertices)
         line_arr = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
@@ -120,6 +133,9 @@ while (cap.isOpened()):
         right_fit_line = get_fitline(image, R_lines)
     except:
         continue
+
+    draw_lines(temp, L_lines)
+    draw_lines(temp, R_lines)
 
     # 대표선 그리기
     draw_fit_line(temp, left_fit_line)
