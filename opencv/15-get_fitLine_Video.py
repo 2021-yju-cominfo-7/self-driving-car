@@ -72,7 +72,7 @@ def get_fitline(img, f_lines):
     return result
 
 
-cap = cv2.VideoCapture("../video/ex1.mp4")
+cap = cv2.VideoCapture("../video/ex3.mp4")
 
 # 재생할 파일의 넓이와 높이
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -94,10 +94,15 @@ while (cap.isOpened()):
         blur_img = gaussian_blur(gray_img, 5)
 
         # 미디안 블러링으로 좌우의 배수구망 이미지 제거
-        blur_img = cv2.medianBlur(blur_img, 9)
-        canny_img = canny(blur_img, 200, 400)
+        blur_img = cv2.medianBlur(blur_img, 11)
+        ret, thr_img = cv2.threshold(blur_img, 170, 255, cv2.THRESH_BINARY)
+
+        # canny_img = canny(blur_img, 30, 350)
+        canny_img_thr = canny(thr_img, 30, 350)
+
         # TODO 이미지 프로세싱 결과 점검
-        # cv2.imshow("image_processing", canny_img)
+        # cv2.imshow("image_processing1", blur_img)
+        # cv2.imshow("image_processing2", thr_img)
 
         vertices = np.array(
             [[(0, height / 2 + 100), (width / 2 - 200, 70), (width / 2 + 200, 70), (width, height / 2 + 100)]],
@@ -107,7 +112,7 @@ while (cap.isOpened()):
         # check_roi = region_of_interest(image, vertices)
         # cv2.imshow("ROI", check_roi)
 
-        ROI_img = region_of_interest(canny_img, vertices)
+        ROI_img = region_of_interest(canny_img_thr, vertices)
         line_arr = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
         # line_arr = hough_lines(canny_img, 1, 1 * np.pi / 180, 30, 10, 20)
         line_arr = np.squeeze(line_arr)
@@ -131,17 +136,18 @@ while (cap.isOpened()):
         # 왼쪽, 오른쪽 각각 대표선 구하기
         left_fit_line = get_fitline(image, L_lines)
         right_fit_line = get_fitline(image, R_lines)
+
+        draw_lines(temp, L_lines)
+        draw_lines(temp, R_lines)
+
+        # 대표선 그리기
+        draw_fit_line(temp, left_fit_line)
+        draw_fit_line(temp, right_fit_line)
+
+        result = weighted_img(temp, image)
     except:
-        continue
+        result = image
 
-    draw_lines(temp, L_lines)
-    draw_lines(temp, R_lines)
-
-    # 대표선 그리기
-    draw_fit_line(temp, left_fit_line)
-    draw_fit_line(temp, right_fit_line)
-
-    result = weighted_img(temp, image)
     cv2.imshow('result', result)
     out.write(result)
 
