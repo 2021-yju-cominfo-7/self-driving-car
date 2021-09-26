@@ -90,6 +90,7 @@ line_arr = np.squeeze(line_arr)
 
 # 기울기 구하기
 slope_degree = (np.arctan2(line_arr[:, 1] - line_arr[:, 3], line_arr[:, 0] - line_arr[:, 2]) * 180) / np.pi
+print(slope_degree)
 
 # 수평 기울기 제한
 line_arr = line_arr[np.abs(slope_degree) < 160]
@@ -107,6 +108,8 @@ L_lines, R_lines = L_lines[:, None], R_lines[:, None]
 left_fit_line = get_fitline(image, L_lines)
 right_fit_line = get_fitline(image, R_lines)
 
+draw_lines(image, L_lines)
+draw_lines(image, R_lines)
 draw_fit_line(image, left_fit_line)
 draw_fit_line(image, right_fit_line)
 
