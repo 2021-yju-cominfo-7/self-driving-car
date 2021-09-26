@@ -72,7 +72,7 @@ def get_fitline(img, f_lines):
     return result
 
 
-cap = cv2.VideoCapture("../video/ex3.mp4")
+cap = cv2.VideoCapture("../video/ex1.mp4")
 
 # 재생할 파일의 넓이와 높이
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -109,8 +109,8 @@ while (cap.isOpened()):
             dtype=np.int32)
 
         # TODO ROI 영역 설정 결과 점검
-        # check_roi = region_of_interest(image, vertices)
-        # cv2.imshow("ROI", check_roi)
+        check_roi = region_of_interest(image, vertices)
+        cv2.imshow("ROI", check_roi)
 
         ROI_img = region_of_interest(canny_img_thr, vertices)
         line_arr = hough_lines(ROI_img, 1, 1 * np.pi / 180, 30, 10, 20)
@@ -137,12 +137,12 @@ while (cap.isOpened()):
         left_fit_line = get_fitline(image, L_lines)
         right_fit_line = get_fitline(image, R_lines)
 
-        draw_lines(temp, L_lines)
-        draw_lines(temp, R_lines)
+        draw_lines(temp, L_lines, [0, 0, 255])
+        draw_lines(temp, R_lines, [255, 0, 0])
 
         # 대표선 그리기
-        draw_fit_line(temp, left_fit_line)
-        draw_fit_line(temp, right_fit_line)
+        draw_fit_line(temp, left_fit_line, [0, 255, 0])
+        draw_fit_line(temp, right_fit_line, [0, 255, 0])
 
         result = weighted_img(temp, image)
     except:

@@ -25,11 +25,8 @@ def get_fitline(img, f_lines):
     output = cv2.fitLine(lines, cv2.DIST_L2, 0, 0.01, 0.01)
     vx, vy, x, y = output[0], output[1], output[2], output[3]
 
-    leftY = int((-x * vy / vx) + y)
-    rightY = int(((cols - x) * vy / vx) + y)
-
-    x1, y1 = cols - 1, rightY
-    x2, y2 = 0, leftY
+    x1, y1 = int(((img.shape[0]-1)-y)/vy*vx + x), img.shape[0]-1
+    x2, y2 = int(((img.shape[0]/2+100)-y)/vy*vx + x), int(img.shape[0]/2+100)
 
     return [x1, y1, x2, y2]
 
@@ -62,9 +59,6 @@ cv2.moveWindow("Video", 500, 500)
 cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("Image", 500, 100)
 
-# cv2.namedWindow("ROI", cv2.WINDOW_NORMAL)
-# cv2.resizeWindow("ROI", 500, 100)
-
 cv2.namedWindow("Hough", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("Hough", 500, 100)
 
@@ -82,19 +76,6 @@ cv2.createTrackbar("Thresh", "Image", 0, 200, lambda x: x)
 cv2.setTrackbarPos("Thresh", "Image", 170)
 cv2.createTrackbar("ThreshMax", "Image", 0, 255, lambda x: x)
 cv2.setTrackbarPos("ThreshMax", "Image", 255)
-
-# cv2.createTrackbar("LeftX", "ROI", 0, width, lambda x: x)
-# cv2.setTrackbarPos("LeftX", "ROI", 0)
-# cv2.createTrackbar("RightX", "ROI", 0, width, lambda x: x)
-# cv2.setTrackbarPos("RightX", "ROI", width)
-# cv2.createTrackbar("TopY", "ROI", 0, height, lambda x: x)
-# cv2.setTrackbarPos("TopY", "ROI", 0)
-# cv2.createTrackbar("BottomY", "ROI", 0, height, lambda x: x)
-# cv2.setTrackbarPos("BottomY", "ROI", height)
-# cv2.createTrackbar("LeftDegree", "ROI", 0, int(width / 2), lambda x: x)
-# cv2.setTrackbarPos("LeftDegree", "ROI", 0)
-# cv2.createTrackbar("RightDegree", "ROI", 0, int(width / 2), lambda x: x)
-# cv2.setTrackbarPos("RightDegree", "ROI", 0)
 
 cv2.createTrackbar("Threshold", "Hough", 0, 100, lambda x: x)
 cv2.setTrackbarPos("Threshold", "Hough", 30)
@@ -115,13 +96,6 @@ while video.isOpened():
         medianValue = medianValue if medianValue % 2 != 0 else medianValue + 1
         thresh = cv2.getTrackbarPos("Thresh", "Image")
         threshMax = cv2.getTrackbarPos("ThreshMax", "Image")
-
-        # leftX = cv2.getTrackbarPos("LeftX", "ROI")
-        # rightX = cv2.getTrackbarPos("RightX", "ROI")
-        # topY = cv2.getTrackbarPos("TopY", "ROI")
-        # bottomY = cv2.getTrackbarPos("BottomY", "ROI")
-        # leftDegree = cv2.getTrackbarPos("LeftDegree", "ROI")
-        # rightDegree = cv2.getTrackbarPos("RightDegree", "ROI")
 
         threshold = cv2.getTrackbarPos("Threshold", "Hough")
         minLength = cv2.getTrackbarPos("MinLength", "Hough")
@@ -163,8 +137,8 @@ while video.isOpened():
             slope_degree = slope_degree[np.abs(slope_degree) < 160]
 
             # 수직 기울기 제한
-            # line_arr = line_arr[np.abs(slope_degree) > 95]
-            # slope_degree = slope_degree[np.abs(slope_degree) > 95]
+            line_arr = line_arr[np.abs(slope_degree) > 95]
+            slope_degree = slope_degree[np.abs(slope_degree) > 95]
 
             # 필터링된 직선 버리기
             L_lines, R_lines = line_arr[(slope_degree > 0), :], line_arr[(slope_degree < 0), :]
