@@ -72,7 +72,7 @@ def get_fitline(img, f_lines):
     return result
 
 
-cap = cv2.VideoCapture("../video/ex1.mp4")
+cap = cv2.VideoCapture("../video/ex3.mp4")
 
 # 재생할 파일의 넓이와 높이
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
