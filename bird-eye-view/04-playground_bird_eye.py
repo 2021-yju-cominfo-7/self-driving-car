@@ -67,11 +67,11 @@ def set_roi_area(image):
 
     # 한 붓 그리기
     _shape = np.array([
-        [int(0.1 * x), int(0.9 * y)], [int(0.1 * x), int(0.1 * y)],
+        [int(0.05 * x), int(0.9 * y)], [int(0.05 * x), int(0.1 * y)],
         [int(0.4 * x), int(0.1 * y)], [int(0.4 * x), int(0.9 * y)],
         [int(0.6 * x), int(0.9 * y)], [int(0.6 * x), int(0.1 * y)],
-        [int(0.9 * x), int(0.1 * y)], [int(0.9 * x), int(0.9 * y)],
-        [int(0.1 * x), int(0.9 * y)]
+        [int(0.95 * x), int(0.1 * y)], [int(0.95 * x), int(0.9 * y)],
+        [int(0.05 * x), int(0.9 * y)]
     ])
 
     mask = np.zeros_like(image)
