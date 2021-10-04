@@ -11,7 +11,7 @@ _LT = 1
 _RB = 2
 _RT = 3
 
-_RED = (255, 0, 0) 
+_RED = (255, 0, 0)
 _GREEN = (0, 255, 0)
 _BLUE = (0, 0, 255)
 _BLACK = (0, 0, 0)
@@ -19,7 +19,7 @@ _WHITE = (255, 255, 255)
 
 _PAUSE_TIME = 0.01
 _DEG_ERROR_RANGE = 1
-_DIST_ERROR_RANGE = 13
+_DIST_ERROR_RANGE = 8
 
 
 def make_source_marker(image):
@@ -51,8 +51,8 @@ def wrapping_img(image, source_position):
 
 
 def color_filtering_img(image):
-    g_blur_size = 5
-    m_blur_size = 11
+    g_blur_size = 7
+    m_blur_size = 13
     thresh = 170
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -226,7 +226,7 @@ width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('result.mp4', fourcc, 30.0, (int(width), int(height)))
+out = cv2.VideoWriter('result.avi', fourcc, 30.0, (int(width), int(height)))
 
 cv2.namedWindow(winname)
 # cv2.moveWindow(winname, 100, 0)
@@ -251,7 +251,6 @@ while True:
         else ("RIGHT" if ((deg > _DEG_ERROR_RANGE) and dist > _DIST_ERROR_RANGE)
               else "FRONT")
 
-    # TODO 어느 방향으로 치우쳐 졌는지 화면에 출력
     cv2.putText(result, f"Deg : {deg}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
                 cv2.LINE_AA)
     cv2.putText(result, f"Dist : {dist}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
