@@ -1,4 +1,3 @@
 .idea
 .idea/*
-./dataset
-./dataset/*
+/yolo-opencv/yolov3.weights
