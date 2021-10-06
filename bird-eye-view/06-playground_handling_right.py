@@ -30,14 +30,14 @@ def make_source_marker(image):
 
     # TODO 추후, 카메라 설정에 따라 mark position 값 수정 필요
     # lb, lt, rb, rt
-    position = np.array([
-        (w * 0.1, h * 0.9), (w * 0.25, h * 0.2), (w * 0.9, h * 0.9), (w * 0.75, h * 0.2)
-    ])  # MEMO ex3.mp4 -> mark position
+    # position = np.array([
+    #     (w * 0.1, h * 0.9), (w * 0.25, h * 0.2), (w * 0.9, h * 0.9), (w * 0.75, h * 0.2)
+    # ])  # MEMO ex3.mp4 -> mark position
 
     # lb, lt, rb, rt
-    # position = np.array([
-    #     (w * 0.1, h * 0.9), (w * 0.38, h * 0.2), (w * 0.95, h * 0.9), (w * 0.7, h * 0.2)
-    # ])  # MEMO ex4.mp4 -> mark position
+    position = np.array([
+        (w * 0.1, h * 0.9), (w * 0.38, h * 0.2), (w * 0.95, h * 0.9), (w * 0.7, h * 0.2)
+    ])  # MEMO ex4.mp4 -> mark position
     position = position.astype(int)
 
     cv2.circle(marked_img, position[_LB], marker_size, _RED, -1)
@@ -233,7 +233,7 @@ def draw_lane_lines(original_image, warped_image, minv, draw_info):
     return pts_mean, result, deg, dist
 
 
-cap = cv2.VideoCapture("../video/ex3.mp4")
+cap = cv2.VideoCapture("../video/ex4.mp4")
 winname = "result"
 
 width = cap.get(cv2.CAP_PROP_FRAME_WIDTH) * 0.5
@@ -253,7 +253,7 @@ while True:
 
     # TODO 카메라 해상도에 따라서, 이미지 리사이징 비율 조정 필요
     # MEMO ex4.mp4 -> 이미지 리사이징
-    # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+    img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     (h, w) = (img.shape[0], img.shape[1])
 
     mark_img, src_position = make_source_marker(img)
