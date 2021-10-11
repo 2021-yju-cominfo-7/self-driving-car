@@ -67,16 +67,16 @@ def main():
 
         if key == 32:  # CAR START or STOP
             speed = 9 if speed < 9 else 0
-        elif key == 0:  # SPEED UP
+        elif key == 119:  # SPEED UP
             if speed == 0:
                 speed = 9
             else:
                 speed += 1
-        elif key == 1:  # SPEED DOWN
+        elif key == 115:  # SPEED DOWN
             speed -= 1
-        elif key == 2:
+        elif key == 97:
             correction -= 1
-        elif key == 3:
+        elif key == 100:
             correction += 1
 
         if speed < 9:
