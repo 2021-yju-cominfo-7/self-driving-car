@@ -88,20 +88,19 @@ def main():
             result, flag, deg = get_lane_information(img, roi_img, minv, correction)
             order_msg = check_order(speed, deg)
 
+            left = int(result.shape[1] * 0.03)
+            top = int(result.shape[0] * 0.7)
+
+            cv2.putText(result, f"{order_msg}", (left, top),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(result, f"Throttles : {speed}", (left, top + 60),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(result, f"Deg_corr : {correction}", (left, top + 100),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             # TODO 차량 연결 시, 활성화
             # write_signal(connection, speed, deg)
         except:
             result = img
-
-        left = int(result.shape[1] * 0.03)
-        top = int(result.shape[0] * 0.7)
-
-        cv2.putText(result, f"{order_msg}", (left, top),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(result, f"Throttles : {speed}", (left, top + 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        cv2.putText(result, f"Deg_corr : {correction}", (left, top + 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         cv2.imshow("result", result)
 
