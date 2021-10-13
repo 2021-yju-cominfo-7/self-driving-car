@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <title>Live Streaming Demonstration</title>
+</head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+    $(function () {
+        $('a#mark_img').bind('click', function () {
+            $.getJSON('/mark_img',
+                function (data) {
+                    //do nothing
+                });
+            return false;
+        });
+    });
+    $(function () {
+        $('a#wrap_img').bind('click', function () {
+            $.getJSON('/wrap_img',
+                function (data) {
+                    //do nothing
+                });
+            return false;
+        });
+    });
+    $(function () {
+        $('a#roi_wrap_img').bind('click', function () {
+            $.getJSON('/roi_wrap_img',
+                function (data) {
+                    //do nothing
+                });
+            return false;
+        });
+    });
+    $(function () {
+        $('a#filter_img').bind('click', function () {
+            $.getJSON('/filter_img',
+                function (data) {
+                    //do nothing
+                });
+            return false;
+        });
+    });
+    $(function () {
+        $('a#roi_img').bind('click', function () {
+            $.getJSON('/roi_img',
+                function (data) {
+                    //do nothing
+                });
+            return false;
+        });
+    });
+</script>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <h3 class="mt-5">Test Streaming</h3>
+            <img src="{{ url_for('test_video') }}" width="100%">
+        </div>
+        <div class="col-lg-8 offset-lg-2"></div>
+        <div class="col-lg-8 offset-lg-2"></div>
+        <div class="col-lg-8 offset-lg-2">
+            <form>
+                <a href=# id=mark_img>
+                    <button class='btn btn-default'>mark_img</button>
+                </a>
+                <a href=# id=wrap_img>
+                    <button class='btn btn-default'>wrap_img</button>
+                </a>
+                <a href=# id=roi_wrap_img>
+                    <button class='btn btn-default'>roi_wrap_img</button>
+                </a>
+                <a href=# id=filter_img>
+                    <button class='btn btn-default'>filter_img</button>
+                </a>
+                <a href=# id=roi_img>
+                    <button class='btn btn-default'>roi_img</button>
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
