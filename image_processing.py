@@ -22,7 +22,7 @@ def set_img_marker(image):
     # TODO 추후, 카메라 설정에 따라 mark position 값 수정 필요
     # lb, lt, rb, rt
     position = np.array([
-        (w * 0.1, h * 0.9), (w * 0.25, h * 0.2), (w * 0.9, h * 0.9), (w * 0.75, h * 0.2)
+        (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
     ])
     position = position.astype(int)
 
@@ -38,7 +38,7 @@ def make_wrapping_img(image, source_position):
     (h, w) = (image.shape[0], image.shape[1])
     source = np.float32(source_position)
 
-    destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
+    destination_position = [(w * 0.15, h * 0.95), (w * 0.15, h * 0.15), (w * 0.85, h * 0.95), (w * 0.85, h * 0.15)]
     destination = np.float32(destination_position)
 
     transform_matrix = cv2.getPerspectiveTransform(source, destination)
@@ -49,14 +49,17 @@ def make_wrapping_img(image, source_position):
 
 
 def make_filtering_img(image):
-    g_blur_size = 7
-    m_blur_size = 13
-    thresh = 170
+    g_blur_size = 15
+    m_blur_size = 15
+    thresh = 190
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     g_blur_img = cv2.GaussianBlur(gray_img, (g_blur_size, g_blur_size), 0)
     m_blur_img = cv2.medianBlur(g_blur_img, m_blur_size)
     ret, thr_img = cv2.threshold(m_blur_img, thresh, 255, cv2.THRESH_BINARY)
+    cv2.imshow("roi", set_roi_area(m_blur_img))
+    # cv2.imshow("test", m_blur_img)
+
     canny_img = cv2.Canny(thr_img, 30, 350)
 
     filtered_img = canny_img
@@ -70,10 +73,10 @@ def set_roi_area(image):
 
     # 한 붓 그리기
     _shape = np.array([
-        [int(0.05 * x), int(0.9 * y)], [int(0.05 * x), int(0.1 * y)],
-        [int(0.4 * x), int(0.1 * y)], [int(0.4 * x), int(0.9 * y)],
-        [int(0.6 * x), int(0.9 * y)], [int(0.6 * x), int(0.1 * y)],
-        [int(0.95 * x), int(0.1 * y)], [int(0.95 * x), int(0.9 * y)],
+        [int(0.1 * x), int(0.9 * y)], [int(0.1 * x), int(0.1 * y)],
+        [int(0.49 * x), int(0.1 * y)], [int(0.49 * x), int(0.9 * y)],
+        [int(0.51 * x), int(0.9 * y)], [int(0.51 * x), int(0.1 * y)],
+        [int(0.9 * x), int(0.1 * y)], [int(0.9 * x), int(0.9 * y)],
         [int(0.05 * x), int(0.9 * y)]
     ])
 
@@ -89,5 +92,3 @@ def set_roi_area(image):
     masked_roi_image = cv2.bitwise_and(image, mask)
 
     return masked_roi_image
-
-

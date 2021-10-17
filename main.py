@@ -1,12 +1,10 @@
 import cv2
 from image_processing import set_img_marker, make_wrapping_img, make_filtering_img, set_roi_area
-from lane_detection import find_lane, get_lane_slope, draw_lane_lines, get_direction_slope, add_img_weighted
+from lane_detection import find_lane, get_lane_slope, draw_lane_lines, add_img_weighted
 from serial_arduino import make_serial_connection, write_signal, check_order
 
 
 def make_image(image):
-    # MEMO 해상도에 따라 이미지 리사이징 필요
-    # image = cv2.resize(image, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
     (h, w) = (image.shape[0], image.shape[1])
 
     mark_img, src_position = set_img_marker(image)
@@ -23,8 +21,7 @@ def get_lane_information(original_image, roi_image, minv, correction):
 
     left, right = find_lane(roi_image)
     draw_info = get_lane_slope(roi_image, left, right)
-    pts_mean, color_warp = draw_lane_lines(roi_image, minv, draw_info)
-    deg, dist, color_warp = get_direction_slope(pts_mean, color_warp)
+    deg, dist, color_warp = draw_lane_lines(roi_image, minv, draw_info)
     result = add_img_weighted(original_image, color_warp, minv)
 
     flag = dist > _DIST_ERROR_RANGE
@@ -49,18 +46,27 @@ def get_lane_information(original_image, roi_image, minv, correction):
 
 def main():
     speed = 0
-    correction = 0
+    correction = -6
 
     # TODO 차량 연결 시, 활성화
     # connection = make_serial_connection()
     # MEMO 웹캠 정보 가져오기
     # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("./video/ex3.mp4")
+    # cap = cv2.VideoCapture("./video/ex3.mp4")
+    # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
+    cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
+    winname = "result"
+
+    cv2.namedWindow(winname)
+    cv2.moveWindow(winname, 50, 500)
 
     while True:
         # TODO 프레임 값 수정 필요
         ret, img = cap.read()
         key = cv2.waitKey(30)
+
+        # MEMO 해상도에 따라 이미지 리사이징 필요
+        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         if not ret:
             break
@@ -102,7 +108,7 @@ def main():
         except:
             result = img
 
-        cv2.imshow("result", result)
+        cv2.imshow(winname, result)
 
         if key & 0xFF == ord("q"):
             break
