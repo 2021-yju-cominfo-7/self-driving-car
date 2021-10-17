@@ -84,16 +84,23 @@ def draw_lane_lines(warped_image, minv, draw_info):
     pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
     pts = np.hstack((pts_left, pts_right))
 
+    left_mid_idx = int(len(np.squeeze(pts_left)) / 2)
+    right_mid_idx = int(len(np.squeeze(pts_right)) / 2)
+
+    left_line = {
+        "start": np.int_(pts_left[0][0]),
+        "mid": np.int_(pts_left[0][left_mid_idx]),
+        "end": np.int_(pts_left[0][-1])
+    }
+    right_line = {
+        "start": np.int_(pts_right[0][0]),
+        "mid": np.int_(pts_right[0][right_mid_idx]),
+        "end": np.int_(pts_right[0][-1])
+    }
+
     mean_x = np.mean((left_fitx, right_fitx), axis=0)
     pts_mean = np.array([np.flipud(np.transpose(np.vstack([mean_x, ploty])))])
 
-    cv2.fillPoly(color_warp, np.int_([pts]), (216, 168, 74))
-    cv2.fillPoly(color_warp, np.int_([pts_mean]), _WHITE)
-
-    return pts_mean, color_warp
-
-
-def get_direction_slope(pts_mean, color_warp):
     center = np.squeeze(np.int_([pts_mean]))
     start, end = center[-1], center[0]
     arr = [start[0], start[1], end[0], end[1]]
@@ -111,16 +118,31 @@ def get_direction_slope(pts_mean, color_warp):
     y = (mid1[1] - mid2[1]) ** 2
     dist = int((x + y) ** 0.5)
 
-    cv2.circle(color_warp, mid1, 10, _BLACK, -1)
-    cv2.circle(color_warp, mid2, 10, _GREEN, -1)
+    cv2.fillPoly(color_warp, np.int_([pts]), (216, 168, 74))
+    cv2.fillPoly(color_warp, np.int_([pts_mean]), _WHITE)
+
+    cv2.line(color_warp, left_line["start"], left_line["end"], _BLUE, 20)
+    cv2.line(color_warp, right_line["start"], right_line["end"], _BLUE, 20)
+
     cv2.circle(color_warp, start, 10, _RED, -1)
     cv2.circle(color_warp, end, 10, _BLACK, -1)
+    cv2.circle(color_warp, mid1, 10, _BLACK, -1)
+    cv2.circle(color_warp, mid2, 10, _GREEN, -1)
+
+    cv2.circle(color_warp, left_line["mid"], 10, _GREEN, -1)
+    cv2.circle(color_warp, right_line["mid"], 10, _GREEN, -1)
+
+    cv2.imshow("test", color_warp)
+    deviation = int((mid1[0] - color_warp.shape[1] / 2) / 30)
+
+    # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 각도 수정 필요
+    # print(deviation)
 
     return deg, dist, color_warp
 
 
 def add_img_weighted(original_image, color_warp, minv):
     new_warp = cv2.warpPerspective(color_warp, minv, (original_image.shape[1], original_image.shape[0]))
-    result = cv2.addWeighted(original_image, 1, new_warp, 0.4, 0)
+    result = cv2.addWeighted(original_image, 0.5, new_warp, 1, 0)
 
     return result
