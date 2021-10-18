@@ -21,7 +21,7 @@ def get_lane_information(original_image, roi_image, minv, correction):
 
     left, right = find_lane(roi_image)
     draw_info = get_lane_slope(roi_image, left, right)
-    deg, dist, color_warp = draw_lane_lines(roi_image, minv, draw_info)
+    deg, dist, deviation, color_warp = draw_lane_lines(roi_image, minv, draw_info)
     result = add_img_weighted(original_image, color_warp, minv)
 
     flag = dist > _DIST_ERROR_RANGE
@@ -41,6 +41,17 @@ def get_lane_information(original_image, roi_image, minv, correction):
     cv2.putText(result, f"Dist : {dist}", (left, top + 80),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
+    # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 -> 각도 수정 필요
+    deviation_result = "At Left Side" if deviation > 0 else "At Right Side" if deviation < 0 else "At Center Side"
+    # 차량이 차선 한쪽에 치우쳐 차량의 위치 보정이 필요한 경우
+    if direction == "FRONT" and deviation != 0:
+        deg = deg - 1 if deviation < 0 else deg + 1
+
+    cv2.putText(result, f"[{deviation_result}] ", (left, top + 140),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(result, f"Deg_M : {deg}", (left, top + 180),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
     return result, flag, deg
 
 
@@ -52,9 +63,9 @@ def main():
     # connection = make_serial_connection()
     # MEMO 웹캠 정보 가져오기
     # cap = cv2.VideoCapture(0)
-    # cap = cv2.VideoCapture("./video/ex3.mp4")
+    cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
-    cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
+    # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
     winname = "result"
 
     cv2.namedWindow(winname)
@@ -66,7 +77,7 @@ def main():
         key = cv2.waitKey(30)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
-        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         if not ret:
             break

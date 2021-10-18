@@ -132,13 +132,10 @@ def draw_lane_lines(warped_image, minv, draw_info):
     cv2.circle(color_warp, left_line["mid"], 10, _GREEN, -1)
     cv2.circle(color_warp, right_line["mid"], 10, _GREEN, -1)
 
-    cv2.imshow("test", color_warp)
+    # cv2.imshow("test", color_warp)
     deviation = int((mid1[0] - color_warp.shape[1] / 2) / 30)
 
-    # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 각도 수정 필요
-    # print(deviation)
-
-    return deg, dist, color_warp
+    return deg, dist, deviation, color_warp
 
 
 def add_img_weighted(original_image, color_warp, minv):

@@ -50,8 +50,8 @@ def make_wrapping_img(image, source_position):
 
 def make_filtering_img(image):
     g_blur_size = 15
-    m_blur_size = 15
-    thresh = 190
+    m_blur_size = 17
+    thresh = 180
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     g_blur_img = cv2.GaussianBlur(gray_img, (g_blur_size, g_blur_size), 0)
