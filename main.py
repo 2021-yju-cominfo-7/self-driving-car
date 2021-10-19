@@ -11,6 +11,8 @@ def make_image(image):
     wrap_img, minv = make_wrapping_img(image, src_position)
     filter_img = make_filtering_img(wrap_img)
     roi_img = set_roi_area(filter_img)
+    cv2.imshow("test", set_roi_area(wrap_img))
+    # cv2.imshow("test", mark_img)
 
     return minv, roi_img
 
@@ -25,7 +27,8 @@ def get_lane_information(original_image, roi_image, minv, correction):
     result = add_img_weighted(original_image, color_warp, minv)
 
     flag = dist > _DIST_ERROR_RANGE
-    deg = (deg if flag else 0) + correction
+    # deg = (deg if flag else 0) + correction
+    deg = ((deg if flag else 0) * 0.15) + correction
 
     direction = "LEFT" if ((deg < _DEG_ERROR_RANGE * -1) and flag) \
         else ("RIGHT" if ((deg > _DEG_ERROR_RANGE) and flag)
@@ -44,8 +47,9 @@ def get_lane_information(original_image, roi_image, minv, correction):
     # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 -> 각도 수정 필요
     deviation_result = "At Left Side" if deviation > 0 else "At Right Side" if deviation < 0 else "At Center Side"
     # 차량이 차선 한쪽에 치우쳐 차량의 위치 보정이 필요한 경우
-    if direction == "FRONT" and deviation != 0:
-        deg = deg - 1 if deviation < 0 else deg + 1
+    # if direction == "FRONT" and deviation != 0:
+        # deg = deg - 1 if deviation < 0 else deg + 1
+    deg = deg - 1 if deviation < 0 else deg + 1
 
     cv2.putText(result, f"[{deviation_result}] ", (left, top + 140),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
@@ -57,22 +61,22 @@ def get_lane_information(original_image, roi_image, minv, correction):
 
 def main():
     speed = 0
-    correction = -6
-
+    correction = -7
+    deg = 90
     # TODO 차량 연결 시, 활성화
-    # connection = make_serial_connection()
+    connection = make_serial_connection()
     # MEMO 웹캠 정보 가져오기
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("./video/ex3.mp4")
+    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
     winname = "result"
 
     cv2.namedWindow(winname)
-    cv2.moveWindow(winname, 50, 500)
+    # cv2.moveWindow(winname, 50, 500)
 
     while True:
-        # TODO 프레임 값 수정 필요
+        # TODO 프레임 수정 필요
         ret, img = cap.read()
         key = cv2.waitKey(30)
 
@@ -114,11 +118,13 @@ def main():
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.putText(result, f"Deg_corr : {correction}", (left, top + 100),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-            # TODO 차량 연결 시, 활성화
-            # write_signal(connection, speed, deg)
         except:
             result = img
+            deg = deg + correction
 
+
+        # TODO 차량 연결 시, 활성화
+        write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
 
         if key & 0xFF == ord("q"):

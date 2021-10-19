@@ -3,18 +3,20 @@ import time
 
 
 def make_serial_connection():
-    PORT = "/dev/cu.usbmodem14401"
+    # PORT = "/dev/cu.usbmodem14401"
+    PORT = "/dev/ttyACM0"
     BaudRate = 9600
     ser = serial.Serial(PORT, BaudRate, timeout=1)
 
     return ser
 
 
-def write_signal(connection, order):
+def write_signal(connection, throttles, direction):
+    order = check_order(throttles, direction)
     now = time.localtime()
 
     print(f"[%02d:%02d:%02d] {order}" % (now.tm_hour, now.tm_min, now.tm_sec))
-    # connection.write(order)
+    connection.write(order)
 
 
 def check_order(throttles, direction):
