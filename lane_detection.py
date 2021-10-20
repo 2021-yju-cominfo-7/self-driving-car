@@ -133,8 +133,8 @@ def draw_lane_lines(warped_image, minv, draw_info):
     cv2.circle(color_warp, right_line["mid"], 10, _GREEN, -1)
 
     # cv2.imshow("test", color_warp)
-    deviation = int((mid1[0] - color_warp.shape[1] / 2) /30)
-    cv2.imshow("ddd", color_warp)
+    deviation = int((mid1[0] - color_warp.shape[1] / 2) / 30)
+    cv2.imshow("wrap", color_warp)
     return deg, dist, deviation, color_warp
 
 

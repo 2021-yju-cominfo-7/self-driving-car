@@ -1,5 +1,6 @@
 import cv2
-from image_processing import set_img_marker, make_wrapping_img, make_filtering_img, set_roi_area
+import time
+from image_processing import set_img_marker, make_wrapping_img, filter_sunLight, make_filtering_img, set_roi_area
 from lane_detection import find_lane, get_lane_slope, draw_lane_lines, add_img_weighted
 from serial_arduino import make_serial_connection, write_signal, check_order
 
@@ -12,7 +13,7 @@ def make_image(image):
     filter_img = make_filtering_img(wrap_img)
     roi_img = set_roi_area(filter_img)
     cv2.imshow("test", set_roi_area(wrap_img))
-    # cv2.imshow("test", mark_img)
+    cv2.imshow("mark", mark_img)
 
     return minv, roi_img
 
@@ -38,29 +39,29 @@ def get_lane_information(original_image, roi_image, minv, correction):
     top = int(original_image.shape[0] * 0.1)
 
     cv2.putText(result, f"[{direction}]", (left, top),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
     cv2.putText(result, f"Deg : {deg}", (left, top + 40),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
     cv2.putText(result, f"Dist : {dist}", (left, top + 80),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
     # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 -> 각도 수정 필요
     deviation_result = "At Left Side" if deviation > 0 else "At Right Side" if deviation < 0 else "At Center Side"
     # 차량이 차선 한쪽에 치우쳐 차량의 위치 보정이 필요한 경우
     # if direction == "FRONT" and deviation != 0:
-        # deg = deg - 1 if deviation < 0 else deg + 1
+    # deg = deg - 1 if deviation < 0 else deg + 1
     deg = deg - 1 if deviation < 0 else deg + 1
 
     cv2.putText(result, f"[{deviation_result}] ", (left, top + 140),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
     cv2.putText(result, f"Deg_M : {deg}", (left, top + 180),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
     return result, flag, deg
 
 
 def main():
-    speed = 0
+    speed = 9
     correction = -7
     deg = 90
     # TODO 차량 연결 시, 활성화
@@ -73,18 +74,26 @@ def main():
     winname = "result"
 
     cv2.namedWindow(winname)
-    # cv2.moveWindow(winname, 50, 500)
+    cv2.namedWindow("wrap")
+    cv2.namedWindow("test")
+    cv2.namedWindow("mark")
+    cv2.moveWindow(winname, 0, 350)
+    cv2.moveWindow("wrap", 600, 700)
+    cv2.moveWindow("test", 600, 350)
+    cv2.moveWindow("mark", 0, 700)
 
     while True:
         # TODO 프레임 수정 필요
         ret, img = cap.read()
-        key = cv2.waitKey(30)
+        key = cv2.waitKey(1)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
-        # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         if not ret:
             break
+
+        # img = filter_sunLight(img)
 
         if key == 32:  # CAR START or STOP
             speed = 9 if speed < 9 else 0
@@ -105,6 +114,9 @@ def main():
 
         minv, roi_img = make_image(img)
 
+        (h, w) = (img.shape[0], img.shape[1])
+        cv2.line(img, (int(w / 2), 0), (int(w / 2), h), (255, 0, 0), 10)
+
         try:
             result, flag, deg = get_lane_information(img, roi_img, minv, correction)
             order_msg = check_order(speed, deg)
@@ -113,15 +125,14 @@ def main():
             top = int(result.shape[0] * 0.7)
 
             cv2.putText(result, f"{order_msg}", (left, top),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.putText(result, f"Throttles : {speed}", (left, top + 60),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.putText(result, f"Deg_corr : {correction}", (left, top + 100),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
         except:
             result = img
             deg = deg + correction
-
 
         # TODO 차량 연결 시, 활성화
         write_signal(connection, speed, deg)

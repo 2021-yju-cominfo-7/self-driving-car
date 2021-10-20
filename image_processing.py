@@ -23,14 +23,14 @@ def set_img_marker(image):
     # lb, lt, rb, rt
     position = np.array([
         # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
-        (w * 0.05, h * 0.6), (w * 0.26, h * 0.4), (w * 1, h * 0.6), (w * 0.75, h * 0.4)
+        (w * 0.05, h * 0.6), (w * 0.3, h * 0.3), (w * 0.9, h * 0.6), (w * 0.68, h * 0.3)
     ])
     position = position.astype(int)
 
     cv2.circle(marked_img, position[_LB], marker_size, _RED, -1)
     cv2.circle(marked_img, position[_LT], marker_size, _GREEN, -1)
     cv2.circle(marked_img, position[_RB], marker_size, _BLUE, -1)
-    cv2.circle(marked_img, position[_RT], marker_size, _BLACK, -1)
+    cv2.circle(marked_img, position[_RT], marker_size, _WHITE, -1)
 
     return marked_img, position
 
@@ -50,17 +50,33 @@ def make_wrapping_img(image, source_position):
     return wrapped_img, minverse
 
 
+def filter_sunLight(image):
+    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+
+    lab_planes = cv2.split(lab)
+    clahe1 = cv2.createCLAHE(clipLimit=10.0, tileGridSize=(500, 500))
+    lab_planes[0] = clahe1.apply(lab_planes[0])
+    lab = cv2.merge(lab_planes)
+    clahe_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    # gray_bgr = cv2.cvtColor(clahe_bgr, cv2.COLOR_BGR2GRAY)
+    #
+    # img = cv2.resize(image, None, fx=0.3, fy=0.3)
+    # result = cv2.resize(gray_bgr, None, fx=0.3, fy=0.3)
+
+    return clahe_bgr
+
+
 def make_filtering_img(image):
-    g_blur_size = 15
-    m_blur_size = 17
-    thresh = 180
+    g_blur_size = 1
+    m_blur_size = 3
+    thresh = 60
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     g_blur_img = cv2.GaussianBlur(gray_img, (g_blur_size, g_blur_size), 0)
     m_blur_img = cv2.medianBlur(g_blur_img, m_blur_size)
     ret, thr_img = cv2.threshold(m_blur_img, thresh, 255, cv2.THRESH_BINARY)
     # cv2.imshow("roi", set_roi_area(m_blur_img))
-    # cv2.imshow("test", m_blur_img)
+    cv2.imshow("test123", thr_img)
 
     canny_img = cv2.Canny(thr_img, 30, 350)
 
@@ -75,10 +91,10 @@ def set_roi_area(image):
 
     # 한 붓 그리기
     _shape = np.array([
-        [int(0.1 * x), int(0.9 * y)], [int(0.1 * x), int(0.1 * y)],
+        [int(0.05 * x), int(0.9 * y)], [int(0.05 * x), int(0.1 * y)],
         [int(0.45 * x), int(0.1 * y)], [int(0.45 * x), int(0.9 * y)],
         [int(0.55 * x), int(0.9 * y)], [int(0.55 * x), int(0.1 * y)],
-        [int(0.9 * x), int(0.1 * y)], [int(0.9 * x), int(0.9 * y)],
+        [int(0.95 * x), int(0.1 * y)], [int(0.95 * x), int(0.9 * y)],
         [int(0.05 * x), int(0.9 * y)]
     ])
 

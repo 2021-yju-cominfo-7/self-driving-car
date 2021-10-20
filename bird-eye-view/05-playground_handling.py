@@ -254,11 +254,11 @@ while True:
         else ("RIGHT" if ((deg > _DEG_ERROR_RANGE) and dist > _DIST_ERROR_RANGE)
               else "FRONT")
 
-    cv2.putText(result, f"Deg : {deg}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+    cv2.putText(result, f"Deg : {deg}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2,
                 cv2.LINE_AA)
-    cv2.putText(result, f"Dist : {dist}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+    cv2.putText(result, f"Dist : {dist}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2,
                 cv2.LINE_AA)
-    cv2.putText(result, f"[{dir}]", (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+    cv2.putText(result, f"[{dir}]", (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2,
                 cv2.LINE_AA)
 
     cv2.imshow("mark", mark_img)
