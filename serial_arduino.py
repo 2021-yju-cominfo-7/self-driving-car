@@ -21,7 +21,7 @@ def write_signal(connection, throttles, direction):
 
 def check_order(throttles, direction):
     value_t = throttles
-    value_d = direction + 90
+    value_d = direction + 90 - 7
 
     if value_d <= 60:
         value_d = 60

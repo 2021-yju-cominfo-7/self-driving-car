@@ -21,9 +21,13 @@ def set_img_marker(image):
 
     # TODO 추후, 카메라 설정에 따라 mark position 값 수정 필요
     # lb, lt, rb, rt
+    # position = np.array([
+    #     # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
+    #     (w * 0.05, h * 0.6), (w * 0.3, h * 0.3), (w * 0.9, h * 0.6), (w * 0.68, h * 0.3)
+    # ])
+    # MEMO 영상 테스트용
     position = np.array([
-        # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
-        (w * 0.05, h * 0.6), (w * 0.3, h * 0.3), (w * 0.9, h * 0.6), (w * 0.68, h * 0.3)
+        (w * 0.1, h * 0.9), (w * 0.25, h * 0.2), (w * 0.9, h * 0.9), (w * 0.75, h * 0.2)
     ])
     position = position.astype(int)
 
@@ -40,6 +44,8 @@ def make_wrapping_img(image, source_position):
     source = np.float32(source_position)
 
     destination_position = [(w * 0.15, h * 0.95), (w * 0.15, h * 0.15), (w * 0.85, h * 0.95), (w * 0.85, h * 0.15)]
+    # MEMO 영상 테스트용
+    destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
     # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
     destination = np.float32(destination_position)
 
@@ -50,33 +56,62 @@ def make_wrapping_img(image, source_position):
     return wrapped_img, minverse
 
 
-def filter_sunLight(image):
-    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+def tmp(img_color):
+    height, width = img_color.shape[:2]  # 이미지의 높이와 너비 불러옴, 가로 [0], 세로[1]
+    hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)  # cvtColor 함수를 이용하여 hsv 색공간으로 변환
+    g_blur_img = cv2.GaussianBlur(hsv, (19, 19), 0)
+    m_blur_img = cv2.medianBlur(g_blur_img, 19)
 
-    lab_planes = cv2.split(lab)
-    clahe1 = cv2.createCLAHE(clipLimit=10.0, tileGridSize=(500, 500))
-    lab_planes[0] = clahe1.apply(lab_planes[0])
-    lab = cv2.merge(lab_planes)
-    clahe_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-    # gray_bgr = cv2.cvtColor(clahe_bgr, cv2.COLOR_BGR2GRAY)
+    # H(Hue, 색조), S(Saturation, 채도), V(Value, 명도)
+    h, s, v = cv2.split(m_blur_img)
+
+    # cv2.imshow("h", h)
+    # cv2.imshow("s", s)
+    # cv2.imshow("v", v)
+
+    # 흰색 선을 놓치면 최대 값을 높임
+    # h = cv2.inRange(h, 100, 255)
+    # result_h = cv2.bitwise_and(hsv, hsv, mask=h)
+    # result_h = cv2.cvtColor(result_h, cv2.COLOR_HSV2BGR)
     #
-    # img = cv2.resize(image, None, fx=0.3, fy=0.3)
-    # result = cv2.resize(gray_bgr, None, fx=0.3, fy=0.3)
+    # cv2.imshow("result_h", result_h)
+    # #
+    # 흰색 선을 놓치면 최소 값을 낮춤
+    # s = cv2.inRange(s, 5, 80)
+    # result_s = cv2.bitwise_and(hsv, hsv, mask=s)
+    # result_s = cv2.cvtColor(result_s, cv2.COLOR_HSV2BGR)
+    #
+    # cv2.imshow("result_s", result_s)
+    # #
+    # # 흰색 선을 놓치면 최소 값을 낮춤
+    # v = cv2.inRange(v, 140, 255)
+    # result_v = cv2.bitwise_and(hsv, hsv, mask=v)
+    # result_v = cv2.cvtColor(result_v, cv2.COLOR_HSV2BGR)
+    #
+    # cv2.imshow("result_v", result_v)
 
-    return clahe_bgr
+    img_mask = cv2.inRange(m_blur_img, (105, 5, 130), (255, 80, 255))  # 범위내의 픽셀들은 흰색, 나머지 검은색
+    img_result = cv2.bitwise_and(img_color, img_color, mask=img_mask)
+    # cv2.imshow('img_mask', img_mask)
+    # cv2.imshow('img_color', img_result)
+
+    gray_img = cv2.cvtColor(img_result, cv2.COLOR_BGR2GRAY)
+    ret, thr_img = cv2.threshold(gray_img, 160, 255, cv2.THRESH_BINARY)
+    canny_img = cv2.Canny(thr_img, 30, 350)
+
+    return canny_img
 
 
 def make_filtering_img(image):
-    g_blur_size = 1
-    m_blur_size = 3
-    thresh = 60
+    g_blur_size = 15
+    m_blur_size = 31
+    thresh = 160
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     g_blur_img = cv2.GaussianBlur(gray_img, (g_blur_size, g_blur_size), 0)
     m_blur_img = cv2.medianBlur(g_blur_img, m_blur_size)
     ret, thr_img = cv2.threshold(m_blur_img, thresh, 255, cv2.THRESH_BINARY)
     # cv2.imshow("roi", set_roi_area(m_blur_img))
-    cv2.imshow("test123", thr_img)
 
     canny_img = cv2.Canny(thr_img, 30, 350)
 
