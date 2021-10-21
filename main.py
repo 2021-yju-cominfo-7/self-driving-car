@@ -22,7 +22,7 @@ def make_image(image):
 
 def get_lane_information(original_image, roi_image, minv, correction):
     _DEG_ERROR_RANGE = 1
-    _DIST_ERROR_RANGE = 3
+    _DIST_ERROR_RANGE = 10
     _DEVIATION_ERROR_RANGE = int(original_image.shape[1] / 30)
 
     left, right = find_lane(roi_image)
@@ -58,7 +58,7 @@ def get_lane_information(original_image, roi_image, minv, correction):
     cv2.putText(result, f"Dist : {dist}", (left, top + 80),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
-    deg = deg * 0.15 + correction
+    deg = deg * 0.12 + correction
 
     # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 -> 각도 수정 필요
     deviation_result = "At Left" if deviation > _DEVIATION_ERROR_RANGE \
@@ -76,7 +76,10 @@ def get_lane_information(original_image, roi_image, minv, correction):
     elif abs(deviation) > _DEVIATION_ERROR_RANGE:
         deviation_size = 1
 
-    deg -= deviation_size
+    if deviation_result == "At Left":
+        deg += deviation_size
+    elif deviation_result == "At Right":
+        deg -= deviation_size
 
     cv2.putText(result, f"[{deviation_result}] ", (left, top + 140),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
@@ -91,10 +94,10 @@ def main():
     correction = 0
     deg = 160
     # TODO 차량 연결 시, 활성화
-    # connection = make_serial_connection()
+    connection = make_serial_connection()
     # MEMO 웹캠 정보 가져오기
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("./video/ex3.mp4")
+    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
     winname = "result"
@@ -104,9 +107,10 @@ def main():
     cv2.namedWindow("filter")
     cv2.namedWindow("wrap")
     cv2.moveWindow(winname, 0, 0)
-    cv2.moveWindow("roi", 730, 0)
-    cv2.moveWindow("filter", 0, 450)
-    cv2.moveWindow("wrap", 730, 450)
+    cv2.moveWindow("roi", 850, 0)
+    cv2.moveWindow("filter", 0, 550)
+    cv2.moveWindow("wrap", 850, 550)
+    start_flag = False
 
     while True:
         # TODO 프레임 수정 필요
@@ -114,23 +118,24 @@ def main():
         key = cv2.waitKey(30)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
-        # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         if not ret:
             break
 
-        if key == 32:  # CAR START or STOP
-            speed = 9 if speed < 9 else 0
-        elif key == 119:  # SPEED UP
-            if speed == 0:
-                speed = 9
-            else:
-                speed += 1
-        elif key == 115:  # SPEED DOWN
-            speed -= 1
+        if key == 32:
+            start_flag = False if start_flag else True
+        # if key == 32:  # CAR START or STOP
+        #     speed = 9 if speed < 9 else 0
+        # elif key == 119:  # SPEED UP
+        #     if speed == 0:
+        #         speed = 9
+        #     else:
+        #         speed += 1
+        # elif key == 115:  # SPEED DOWN
+        #     speed -= 1
         elif key == 97:
             correction -= 1
-            print("A")
         elif key == 100:
             correction += 1
 
@@ -141,17 +146,20 @@ def main():
 
         (h, w) = (img.shape[0], img.shape[1])
         cv2.line(img, (int(w / 2), 0), (int(w / 2), h), (255, 0, 0), 10)
-
+        if not start_flag:
+            speed = 0
         try:
             result, is_curved, deg = get_lane_information(img, roi_img, minv, correction)
-            speed = 9 if is_curved else 10
+            if start_flag:
+                speed = 9 if is_curved else 10
         except Exception as e:
             exp_msg = e.args[0]
             deg += correction
             result = img
 
             print("------차량 속도를 낮춥니다------")
-            speed = 9
+            if start_flag:
+                speed = 9
 
             # MEMO 한 쪽 차선이 인식되지 않을 경우 예외처리
             if exp_msg == "LINE_L":
@@ -175,7 +183,7 @@ def main():
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
         # TODO 차량 연결 시, 활성화
-        # write_signal(connection, speed, deg)
+        write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
 
         if key & 0xFF == ord("q"):

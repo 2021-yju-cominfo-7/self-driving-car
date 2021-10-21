@@ -21,14 +21,14 @@ def set_img_marker(image):
 
     # TODO 추후, 카메라 설정에 따라 mark position 값 수정 필요
     # lb, lt, rb, rt
-    # position = np.array([
-    #     # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
-    #     (w * 0.05, h * 0.6), (w * 0.3, h * 0.3), (w * 0.9, h * 0.6), (w * 0.68, h * 0.3)
-    # ])
-    # MEMO 영상 테스트용
     position = np.array([
-        (w * 0.1, h * 0.9), (w * 0.25, h * 0.2), (w * 0.9, h * 0.9), (w * 0.75, h * 0.2)
+        # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
+        (w * 0.05, h * 0.6), (w * 0.3, h * 0.3), (w * 0.9, h * 0.6), (w * 0.68, h * 0.3)
     ])
+    # MEMO 영상 테스트용
+    # position = np.array([
+    #     (w * 0.1, h * 0.9), (w * 0.25, h * 0.2), (w * 0.9, h * 0.9), (w * 0.75, h * 0.2)
+    # ])
     position = position.astype(int)
 
     cv2.circle(marked_img, position[_LB], marker_size, _RED, -1)
@@ -45,7 +45,7 @@ def make_wrapping_img(image, source_position):
 
     destination_position = [(w * 0.15, h * 0.95), (w * 0.15, h * 0.15), (w * 0.85, h * 0.95), (w * 0.85, h * 0.15)]
     # MEMO 영상 테스트용
-    destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
+    # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
     # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
     destination = np.float32(destination_position)
 
@@ -69,28 +69,28 @@ def tmp(img_color):
     # cv2.imshow("s", s)
     # cv2.imshow("v", v)
 
-    # 흰색 선을 놓치면 최대 값을 높임
-    # h = cv2.inRange(h, 100, 255)
+    # # 흰색 선을 놓치면 최대 값을 높임
+    # h = cv2.inRange(h, 80, 255)
     # result_h = cv2.bitwise_and(hsv, hsv, mask=h)
     # result_h = cv2.cvtColor(result_h, cv2.COLOR_HSV2BGR)
     #
     # cv2.imshow("result_h", result_h)
-    # #
-    # 흰색 선을 놓치면 최소 값을 낮춤
-    # s = cv2.inRange(s, 5, 80)
+    #
+    # # 흰색 선을 놓치면 최소 값을 낮춤
+    # s = cv2.inRange(s, 5, 50)
     # result_s = cv2.bitwise_and(hsv, hsv, mask=s)
     # result_s = cv2.cvtColor(result_s, cv2.COLOR_HSV2BGR)
     #
     # cv2.imshow("result_s", result_s)
-    # #
+    #
     # # 흰색 선을 놓치면 최소 값을 낮춤
-    # v = cv2.inRange(v, 140, 255)
+    # v = cv2.inRange(v, 180, 255)
     # result_v = cv2.bitwise_and(hsv, hsv, mask=v)
     # result_v = cv2.cvtColor(result_v, cv2.COLOR_HSV2BGR)
     #
     # cv2.imshow("result_v", result_v)
 
-    img_mask = cv2.inRange(m_blur_img, (105, 5, 130), (255, 80, 255))  # 범위내의 픽셀들은 흰색, 나머지 검은색
+    img_mask = cv2.inRange(m_blur_img, (80, 5, 140), (255, 50, 255))  # 범위내의 픽셀들은 흰색, 나머지 검은색
     img_result = cv2.bitwise_and(img_color, img_color, mask=img_mask)
     # cv2.imshow('img_mask', img_mask)
     # cv2.imshow('img_color', img_result)
