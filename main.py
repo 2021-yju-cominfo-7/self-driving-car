@@ -5,13 +5,15 @@ from serial_arduino import make_serial_connection, write_signal, check_order
 import time
 
 
-def make_image(image):
+def make_image(image, flag):
     (h, w) = (image.shape[0], image.shape[1])
 
     mark_img, src_position = set_img_marker(image)
     wrap_img, minv = make_wrapping_img(image, src_position)
-    # filter_img = make_filtering_img(wrap_img)
-    filter_img = tmp(wrap_img)
+    if flag:
+        filter_img = make_filtering_img(wrap_img)
+    else:
+        filter_img = tmp(wrap_img)
 
     roi_img = set_roi_area(filter_img)
     cv2.imshow("filter", roi_img)
@@ -29,7 +31,7 @@ def get_lane_information(original_image, roi_image, minv, correction):
     # FIXME 이 경우에 왼쪽 또는 오른쪽으로 차를 틀어야 함
     if left == 0 or right == 0:
         now = time.localtime()
-        print(f"[%02d:%02d:%02d] 차선 미검출!" % (now.tm_hour, now.tm_min, now.tm_sec))
+        # print(f"[%02d:%02d:%02d] 차선 미검출!" % (now.tm_hour, now.tm_min, now.tm_sec))
         if left == 0:
             raise Exception("LINE_L")
         elif right == 0:
@@ -69,17 +71,18 @@ def get_lane_information(original_image, roi_image, minv, correction):
     # deg = deg - 1 if deviation < 0 else deg + 1
 
     deviation_size = 0
-    if abs(deviation) > original_image.shape[1] / 3:
-        deviation_size = 1.5
-    elif abs(deviation) > original_image.shape[1] / 4:
-        deviation_size = 1.3
-    elif abs(deviation) > _DEVIATION_ERROR_RANGE:
-        deviation_size = 1
+    if direction == "FRONT":
+        if abs(deviation) > original_image.shape[1] / 3:
+            deviation_size = 1.5
+        elif abs(deviation) > original_image.shape[1] / 4:
+            deviation_size = 1.3
+        elif abs(deviation) > _DEVIATION_ERROR_RANGE:
+            deviation_size = 1
 
-    if deviation_result == "At Left":
-        deg += deviation_size
-    elif deviation_result == "At Right":
-        deg -= deviation_size
+        if deviation_result == "At Left":
+            deg += deviation_size
+        elif deviation_result == "At Right":
+            deg -= deviation_size
 
     cv2.putText(result, f"[{deviation_result}] ", (left, top + 140),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
@@ -92,12 +95,12 @@ def get_lane_information(original_image, roi_image, minv, correction):
 def main():
     speed = 0
     correction = 0
-    deg = 160
+    deg = 90
     # TODO 차량 연결 시, 활성화
     connection = make_serial_connection()
-    # MEMO 웹캠 정보 가져오기
-    cap = cv2.VideoCapture(0)
-    # cap = cv2.VideoCapture("./video/ex3.mp4")
+    # MEMO 웹캠 정보 가져오    기
+    # cap = cv2.VideoCapture(3)
+    cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
     winname = "result"
@@ -110,7 +113,9 @@ def main():
     cv2.moveWindow("roi", 850, 0)
     cv2.moveWindow("filter", 0, 550)
     cv2.moveWindow("wrap", 850, 550)
+
     start_flag = False
+    filter_flag = True
 
     while True:
         # TODO 프레임 수정 필요
@@ -118,7 +123,7 @@ def main():
         key = cv2.waitKey(30)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
-        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         if not ret:
             break
@@ -142,12 +147,15 @@ def main():
         if speed < 9:
             speed = 0
 
-        minv, roi_img = make_image(img)
+        filter_flag = False if filter_flag else True
+        minv, roi_img = make_image(img, filter_flag)
 
         (h, w) = (img.shape[0], img.shape[1])
         cv2.line(img, (int(w / 2), 0), (int(w / 2), h), (255, 0, 0), 10)
+
         if not start_flag:
             speed = 0
+
         try:
             result, is_curved, deg = get_lane_information(img, roi_img, minv, correction)
             if start_flag:
@@ -157,18 +165,18 @@ def main():
             deg += correction
             result = img
 
-            print("------차량 속도를 낮춥니다------")
+            # print("------차량 속도를 낮춥니다------")
             if start_flag:
                 speed = 9
 
             # MEMO 한 쪽 차선이 인식되지 않을 경우 예외처리
             if exp_msg == "LINE_L":
-                print("------차를 왼쪽으로 틉니다------")
-                deg -= 1.3
+                # print("------차를 왼쪽으로 틉니다------")
+                deg -= 1.5
 
             elif exp_msg == "LINE_R":
-                print("------차를 오른쪽으로 틉니다------")
-                deg += 1.3
+                # print("------차를 오른쪽으로 틉니다------")
+                deg += 1.5
 
         order_msg = check_order(speed, deg)
 
@@ -183,6 +191,7 @@ def main():
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
         # TODO 차량 연결 시, 활성화
+        print(deg)
         write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
 

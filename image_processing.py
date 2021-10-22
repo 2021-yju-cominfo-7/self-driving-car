@@ -63,7 +63,7 @@ def tmp(img_color):
     m_blur_img = cv2.medianBlur(g_blur_img, 19)
 
     # H(Hue, 색조), S(Saturation, 채도), V(Value, 명도)
-    h, s, v = cv2.split(m_blur_img)
+    # h, s, v = cv2.split(m_blur_img)
 
     # cv2.imshow("h", h)
     # cv2.imshow("s", s)

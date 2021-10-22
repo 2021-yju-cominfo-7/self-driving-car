@@ -146,7 +146,7 @@ def draw_lane_lines(wraped_image, minv, draw_info):
 
     if check_start_line or check_end_line:
         now = time.localtime()
-        print(f"[%02d:%02d:%02d] 차선 인식 결과 에러!" % (now.tm_hour, now.tm_min, now.tm_sec))
+        # print(f"[%02d:%02d:%02d] 차선 인식 결과 에러!" % (now.tm_hour, now.tm_min, now.tm_sec))
         raise Exception("LINE_ERR")
 
     deviation = (right_line["mid"][0] - w / 2) - (w / 2 - left_line["mid"][0])
