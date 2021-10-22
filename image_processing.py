@@ -23,7 +23,7 @@ def set_img_marker(image):
     # lb, lt, rb, rt
     position = np.array([
         # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
-        (w * 0.05, h * 0.6), (w * 0.3, h * 0.3), (w * 0.9, h * 0.6), (w * 0.68, h * 0.3)
+        (w * 0.00, h * 0.6), (w * 0.21, h * 0.3), (w * 0.97, h * 0.6), (w * 0.78, h * 0.3)
     ])
     # MEMO 영상 테스트용
     # position = np.array([

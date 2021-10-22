@@ -3,17 +3,22 @@ import cv2
 import time
 
 
-def write_signal(connection, throttles, direction):
-    order = check_order(throttles, direction)
+def write_signal(connection, throttles, direction, flag):
+    order = check_order(throttles, direction, flag)
     now = time.localtime()
 
     print(f"[%02d:%02d:%02d] {order}" % (now.tm_hour, now.tm_min, now.tm_sec))
     connection.write(order)
 
 
-def check_order(throttles, direction):
+def check_order(throttles, direction, flag):
+    if flag:
+        tmp = 7
+    else:
+        tmp = 9
+
     value_t = throttles
-    value_d = direction + 90 - 7
+    value_d = direction + 90 - tmp
 
     if value_d <= 60:
         value_d = 60
@@ -41,7 +46,7 @@ out = cv2.VideoWriter('./Arduino/result.avi', fourcc, 30.0, (int(width), int(hei
 speed = 0
 correction = 0
 deg = 0
-
+correction_flag = True
 while True:
     ret, img = cap.read()
     key = cv2.waitKey(1)
@@ -63,7 +68,8 @@ while True:
     elif key == 100:
         correction += 1
 
-    write_signal(connection, speed, deg + correction)
+    correction_flag = False if correction_flag else True
+    write_signal(connection, speed, deg + correction, correction_flag)
     cv2.imshow("main", img)
     out.write(img)
 

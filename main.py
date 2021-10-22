@@ -24,7 +24,7 @@ def make_image(image, flag):
 
 def get_lane_information(original_image, roi_image, minv, correction):
     _DEG_ERROR_RANGE = 1
-    _DIST_ERROR_RANGE = 10
+    _DIST_ERROR_RANGE = 5
     _DEVIATION_ERROR_RANGE = int(original_image.shape[1] / 30)
 
     left, right = find_lane(roi_image)
@@ -60,8 +60,9 @@ def get_lane_information(original_image, roi_image, minv, correction):
     cv2.putText(result, f"Dist : {dist}", (left, top + 80),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
-    deg = deg * 0.12 + correction
+    deg = deg * 0.25 + correction
 
+    # FIXME 중앙이 아닐 경우 차량 속도 감속 필요!!!
     # TODO deviation 이 음수이면 좌회전 / 양수이면 우회전 -> 각도 수정 필요
     deviation_result = "At Left" if deviation > _DEVIATION_ERROR_RANGE \
         else "At Right" if deviation < _DEVIATION_ERROR_RANGE * -1 \
@@ -71,18 +72,18 @@ def get_lane_information(original_image, roi_image, minv, correction):
     # deg = deg - 1 if deviation < 0 else deg + 1
 
     deviation_size = 0
-    if direction == "FRONT":
-        if abs(deviation) > original_image.shape[1] / 3:
-            deviation_size = 1.5
-        elif abs(deviation) > original_image.shape[1] / 4:
-            deviation_size = 1.3
-        elif abs(deviation) > _DEVIATION_ERROR_RANGE:
-            deviation_size = 1
+    # if direction == "FRONT":
+    if abs(deviation) > original_image.shape[1] / 3:
+        deviation_size = 2.3
+    elif abs(deviation) > original_image.shape[1] / 4:
+        deviation_size = 1.5
+    elif abs(deviation) > _DEVIATION_ERROR_RANGE:
+        deviation_size = 1
 
-        if deviation_result == "At Left":
-            deg += deviation_size
-        elif deviation_result == "At Right":
-            deg -= deviation_size
+    if deviation_result == "At Left":
+        deg += deviation_size
+    elif deviation_result == "At Right":
+        deg -= deviation_size
 
     cv2.putText(result, f"[{deviation_result}] ", (left, top + 140),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
@@ -99,8 +100,8 @@ def main():
     # TODO 차량 연결 시, 활성화
     connection = make_serial_connection()
     # MEMO 웹캠 정보 가져오    기
-    # cap = cv2.VideoCapture(3)
-    cap = cv2.VideoCapture("./video/ex3.mp4")
+    cap = cv2.VideoCapture(3)
+    # cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
     winname = "result"
@@ -123,7 +124,7 @@ def main():
         key = cv2.waitKey(30)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
-        # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
 
         if not ret:
             break
@@ -159,7 +160,7 @@ def main():
         try:
             result, is_curved, deg = get_lane_information(img, roi_img, minv, correction)
             if start_flag:
-                speed = 9 if is_curved else 10
+                speed = 9 if is_curved else 9
         except Exception as e:
             exp_msg = e.args[0]
             deg += correction
@@ -172,11 +173,11 @@ def main():
             # MEMO 한 쪽 차선이 인식되지 않을 경우 예외처리
             if exp_msg == "LINE_L":
                 # print("------차를 왼쪽으로 틉니다------")
-                deg -= 1.5
+                deg -= 1.8
 
             elif exp_msg == "LINE_R":
                 # print("------차를 오른쪽으로 틉니다------")
-                deg += 1.5
+                deg += 1.8
 
         order_msg = check_order(speed, deg)
 
@@ -192,6 +193,8 @@ def main():
 
         # TODO 차량 연결 시, 활성화
         print(deg)
+        if abs(deg) > 10:
+            deg = 10 if deg > 0 else -10
         write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
 
