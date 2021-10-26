@@ -3,8 +3,8 @@ import time
 
 
 def make_serial_connection():
-    PORT = "/dev/cu.usbmodem14301"
-    # PORT = "/dev/ttyACM0"
+    # PORT = "/dev/cu.usbmodem14301"
+    PORT = "/dev/ttyACM0"
     BaudRate = 9600
     ser = serial.Serial(PORT, BaudRate, timeout=1)
 

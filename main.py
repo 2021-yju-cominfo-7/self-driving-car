@@ -10,10 +10,13 @@ def make_image(image, flag):
 
     mark_img, src_position = set_img_marker(image)
     wrap_img, minv = make_wrapping_img(image, src_position)
-    if flag:
-        filter_img = make_filtering_img(wrap_img)
-    else:
-        filter_img = tmp(wrap_img)
+    # if flag:
+    #     filter_img = make_filtering_img(wrap_img)
+    # else:
+    #     filter_img = tmp(wrap_img)
+    filter_img = make_filtering_img(wrap_img)
+
+        
 
     roi_img = set_roi_area(filter_img)
     cv2.imshow("filter", roi_img)
@@ -100,7 +103,7 @@ def main():
     # TODO 차량 연결 시, 활성화
     connection = make_serial_connection()
     # MEMO 웹캠 정보 가져오    기
-    cap = cv2.VideoCapture(3)
+    cap = cv2.VideoCapture(0)
     # cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
@@ -124,8 +127,8 @@ def main():
         key = cv2.waitKey(30)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
-        img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
-
+        # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        print(img.shape)
         if not ret:
             break
 
@@ -192,7 +195,7 @@ def main():
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
         # TODO 차량 연결 시, 활성화
-        print(deg)
+        # print(deg)
         if abs(deg) > 10:
             deg = 10 if deg > 0 else -10
         write_signal(connection, speed, deg)

@@ -43,7 +43,7 @@ def make_wrapping_img(image, source_position):
     (h, w) = (image.shape[0], image.shape[1])
     source = np.float32(source_position)
 
-    destination_position = [(w * 0.15, h * 0.95), (w * 0.15, h * 0.15), (w * 0.85, h * 0.95), (w * 0.85, h * 0.15)]
+    destination_position = [(w * 0.25, h * 1.5), (w * 0.25, h * 0.15), (w * 0.75, h * 1.5), (w * 0.75, h * 0.15)]
     # MEMO 영상 테스트용
     # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
     # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]

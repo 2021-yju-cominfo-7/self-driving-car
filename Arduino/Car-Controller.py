@@ -32,8 +32,8 @@ def check_order(throttles, direction, flag):
     return order
 
 
-cap = cv2.VideoCapture(3)
-PORT = "/dev/cu.usbmodem14301"
+cap = cv2.VideoCapture(0)
+PORT = "/dev/ttyACM0"
 BaudRate = 9600
 connection = serial.Serial(PORT, BaudRate, timeout=1)
 
