@@ -175,8 +175,8 @@ def slide_window_search(image, left_current, right_current):
     # plt.imshow(out_img)
     # plt.plot(left_fitx, ploty, color='red')
     # plt.plot(right_fitx, ploty, color='blue')
-    # plt.xlim(0, 720)
-    # plt.ylim(440, 0)
+    # plt.xlim(0, 90)
+    # plt.ylim(540, 0)
     # plt.show(block=False)
     # plt.pause(_PAUSE_TIME)
     # plt.cla()
@@ -186,10 +186,10 @@ def slide_window_search(image, left_current, right_current):
     return ret
 
 
-def draw_lane_lines(original_image, warped_image, minv, draw_info):
+def draw_lane_lines(original_image, wraped_image, minv, draw_info):
     left_fitx, right_fitx, ploty = draw_info['left_fitx'], draw_info['right_fitx'], draw_info['ploty']
 
-    warp_zero = np.zeros_like(warped_image).astype(np.uint8)
+    warp_zero = np.zeros_like(wraped_image).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
 
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import math
+import time
 
 _RED = (255, 0, 0)
 _GREEN = (0, 255, 0)
@@ -74,26 +75,34 @@ def get_lane_slope(image, left_current, right_current):
     return ret
 
 
-def draw_lane_lines(warped_image, minv, draw_info):
+def draw_lane_lines(wraped_image, minv, draw_info):
     left_fitx, right_fitx, ploty = draw_info['left_fitx'], draw_info['right_fitx'], draw_info['ploty']
 
-    warp_zero = np.zeros_like(warped_image).astype(np.uint8)
-    color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+    warp_zero = np.zeros_like(wraped_image).astype(np.uint8)
+    color_wrap = np.dstack((warp_zero, warp_zero, warp_zero))
+    (h, w) = (color_wrap.shape[0], color_wrap.shape[1])
 
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
     pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
     pts = np.hstack((pts_left, pts_right))
 
+    left_mid_idx = int(len(np.squeeze(pts_left)) / 2)
+    right_mid_idx = int(len(np.squeeze(pts_right)) / 2)
+
+    left_line = {
+        "start": np.int_(pts_left[0][0]),
+        "mid": np.int_(pts_left[0][left_mid_idx]),
+        "end": np.int_(pts_left[0][-1])
+    }
+    right_line = {
+        "start": np.int_(pts_right[0][0]),
+        "mid": np.int_(pts_right[0][right_mid_idx]),
+        "end": np.int_(pts_right[0][-1])
+    }
+
     mean_x = np.mean((left_fitx, right_fitx), axis=0)
     pts_mean = np.array([np.flipud(np.transpose(np.vstack([mean_x, ploty])))])
 
-    cv2.fillPoly(color_warp, np.int_([pts]), (216, 168, 74))
-    cv2.fillPoly(color_warp, np.int_([pts_mean]), _WHITE)
-
-    return pts_mean, color_warp
-
-
-def get_direction_slope(pts_mean, color_warp):
     center = np.squeeze(np.int_([pts_mean]))
     start, end = center[-1], center[0]
     arr = [start[0], start[1], end[0], end[1]]
@@ -111,16 +120,42 @@ def get_direction_slope(pts_mean, color_warp):
     y = (mid1[1] - mid2[1]) ** 2
     dist = int((x + y) ** 0.5)
 
-    cv2.circle(color_warp, mid1, 10, _BLACK, -1)
-    cv2.circle(color_warp, mid2, 10, _GREEN, -1)
-    cv2.circle(color_warp, start, 10, _RED, -1)
-    cv2.circle(color_warp, end, 10, _BLACK, -1)
+    cv2.fillPoly(color_wrap, np.int_([pts]), (216, 168, 74))
+    cv2.fillPoly(color_wrap, np.int_([pts_mean]), _WHITE)
 
-    return deg, dist, color_warp
+    cv2.line(color_wrap, left_line["start"], left_line["end"], _BLUE, 20)
+    cv2.line(color_wrap, right_line["start"], right_line["end"], _BLUE, 20)
+
+    cv2.circle(color_wrap, left_line["mid"], 10, _GREEN, -1)
+    cv2.circle(color_wrap, right_line["mid"], 10, _GREEN, -1)
+    cv2.circle(color_wrap, (int(w / 2), int(h / 2)), 10, _RED, 20)
+
+    cv2.circle(color_wrap, start, 20, _RED, -1)
+    cv2.circle(color_wrap, end, 20, _BLACK, -1)
+    cv2.circle(color_wrap, mid1, 10, _BLACK, -1)
+    cv2.circle(color_wrap, mid2, 10, _GREEN, -1)
+
+    cv2.imshow("wrap", color_wrap)
+
+    check_start_line = ((right_line["start"][0] - left_line["start"][0]) < 0) or \
+                       (left_line["start"][0] > start[0]) or \
+                       (right_line["start"][0] < start[0])
+    check_end_line = (right_line["end"][0] - left_line["end"][0]) < 0 or \
+                     (left_line["end"][0] > end[0]) or \
+                     (right_line["end"][0] < end[0])
+
+    if check_start_line or check_end_line:
+        now = time.localtime()
+        # print(f"[%02d:%02d:%02d] 차선 인식 결과 에러!" % (now.tm_hour, now.tm_min, now.tm_sec))
+        raise Exception("LINE_ERR")
+
+    deviation = (right_line["mid"][0] - w / 2) - (w / 2 - left_line["mid"][0])
+
+    return deg, dist, deviation, color_wrap
 
 
 def add_img_weighted(original_image, color_warp, minv):
     new_warp = cv2.warpPerspective(color_warp, minv, (original_image.shape[1], original_image.shape[0]))
-    result = cv2.addWeighted(original_image, 1, new_warp, 0.4, 0)
+    result = cv2.addWeighted(original_image, 0.5, new_warp, 1, 0)
 
     return result

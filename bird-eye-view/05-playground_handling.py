@@ -72,10 +72,10 @@ def set_roi_area(image):
 
     # 한 붓 그리기
     _shape = np.array([
-        [int(0.05 * x), int(0.9 * y)], [int(0.05 * x), int(0.1 * y)],
+        [int(0.02 * x), int(0.9 * y)], [int(0.02 * x), int(0.1 * y)],
         [int(0.4 * x), int(0.1 * y)], [int(0.4 * x), int(0.9 * y)],
         [int(0.6 * x), int(0.9 * y)], [int(0.6 * x), int(0.1 * y)],
-        [int(0.95 * x), int(0.1 * y)], [int(0.95 * x), int(0.9 * y)],
+        [int(0.98 * x), int(0.1 * y)], [int(0.98 * x), int(0.9 * y)],
         [int(0.05 * x), int(0.9 * y)]
     ])
 
@@ -173,10 +173,10 @@ def slide_window_search(image, left_current, right_current):
     return ret
 
 
-def draw_lane_lines(original_image, warped_image, minv, draw_info):
+def draw_lane_lines(original_image, wraped_image, minv, draw_info):
     left_fitx, right_fitx, ploty = draw_info['left_fitx'], draw_info['right_fitx'], draw_info['ploty']
 
-    warp_zero = np.zeros_like(warped_image).astype(np.uint8)
+    warp_zero = np.zeros_like(wraped_image).astype(np.uint8)
     color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
 
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
@@ -185,6 +185,9 @@ def draw_lane_lines(original_image, warped_image, minv, draw_info):
 
     mean_x = np.mean((left_fitx, right_fitx), axis=0)
     pts_mean = np.array([np.flipud(np.transpose(np.vstack([mean_x, ploty])))])
+
+    left_line = {"start": np.int_(pts_left[0][0]), "end": np.int_(pts_left[0][-1])}
+    cv2.line(color_warp, left_line["start"], left_line["end"], (0, 255, 0), 10)
 
     cv2.fillPoly(color_warp, np.int_([pts]), (216, 168, 74))
     cv2.fillPoly(color_warp, np.int_([pts_mean]), _WHITE)
@@ -211,10 +214,10 @@ def draw_lane_lines(original_image, warped_image, minv, draw_info):
     cv2.circle(color_warp, start, 10, _RED, -1)
     cv2.circle(color_warp, end, 10, _BLACK, -1)
 
-    # cv2.imshow("color_warp", color_warp)
+    cv2.imshow("color_warp", color_warp)
 
     new_warp = cv2.warpPerspective(color_warp, minv, (original_image.shape[1], original_image.shape[0]))
-    result = cv2.addWeighted(original_image, 1, new_warp, 0.4, 0)
+    result = cv2.addWeighted(original_image, 0.5, new_warp, 1, 0)
 
     return pts_mean, result, deg, dist
 
@@ -251,15 +254,15 @@ while True:
         else ("RIGHT" if ((deg > _DEG_ERROR_RANGE) and dist > _DIST_ERROR_RANGE)
               else "FRONT")
 
-    cv2.putText(result, f"Deg : {deg}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+    cv2.putText(result, f"Deg : {deg}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2,
                 cv2.LINE_AA)
-    cv2.putText(result, f"Dist : {dist}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+    cv2.putText(result, f"Dist : {dist}", (20, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2,
                 cv2.LINE_AA)
-    cv2.putText(result, f"[{dir}]", (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2,
+    cv2.putText(result, f"[{dir}]", (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2,
                 cv2.LINE_AA)
 
-    # cv2.imshow("mark", mark_img)
-    # cv2.imshow("roi", set_roi_area(wrap_img))
+    cv2.imshow("mark", mark_img)
+    cv2.imshow("roi", set_roi_area(wrap_img))
     cv2.imshow(winname, result)
     out.write(result)
 
