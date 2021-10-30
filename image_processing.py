@@ -23,7 +23,8 @@ def set_img_marker(image):
     # lb, lt, rb, rt
     position = np.array([
         # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
-        (w * 0.00, h * 0.6), (w * 0.21, h * 0.3), (w * 0.97, h * 0.6), (w * 0.78, h * 0.3)
+        # (w * 0.00, h * 0.6), (w * 0.21, h * 0.3), (w * 0.97, h * 0.6), (w * 0.78, h * 0.3)
+        (w * 0.00, h * 0.6), (w * 0.43, h * 0.1), (w * 0.97, h * 0.6), (w * 0.7, h * 0.1)
     ])
     # MEMO 영상 테스트용
     # position = np.array([
@@ -43,7 +44,7 @@ def make_wrapping_img(image, source_position):
     (h, w) = (image.shape[0], image.shape[1])
     source = np.float32(source_position)
 
-    destination_position = [(w * 0.25, h * 1.5), (w * 0.25, h * 0.15), (w * 0.75, h * 1.5), (w * 0.75, h * 0.15)]
+    destination_position = [(w * 0.25, h * 0.85), (w * 0.25, h * 0.15), (w * 0.75, h * 0.85), (w * 0.75, h * 0.15)]
     # MEMO 영상 테스트용
     # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
     # destination_position = [(w * 0.1, h * 0.95), (w * 0.1, h * 0.15), (w * 0.9, h * 0.95), (w * 0.9, h * 0.15)]
@@ -105,7 +106,7 @@ def tmp(img_color):
 def make_filtering_img(image):
     g_blur_size = 15
     m_blur_size = 31
-    thresh = 160
+    thresh = 170
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     g_blur_img = cv2.GaussianBlur(gray_img, (g_blur_size, g_blur_size), 0)

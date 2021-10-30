@@ -15,10 +15,8 @@ def make_image(image, flag):
     # else:
     #     filter_img = tmp(wrap_img)
     filter_img = make_filtering_img(wrap_img)
-
-        
-
     roi_img = set_roi_area(filter_img)
+
     cv2.imshow("filter", roi_img)
     cv2.imshow("roi", set_roi_area(wrap_img))
 
@@ -28,7 +26,7 @@ def make_image(image, flag):
 def get_lane_information(original_image, roi_image, minv, correction):
     _DEG_ERROR_RANGE = 1
     _DIST_ERROR_RANGE = 5
-    _DEVIATION_ERROR_RANGE = int(original_image.shape[1] / 30)
+    _DEVIATION_ERROR_RANGE = int(original_image.shape[1] / 10)
 
     left, right = find_lane(roi_image)
     # FIXME 이 경우에 왼쪽 또는 오른쪽으로 차를 틀어야 함
@@ -46,8 +44,9 @@ def get_lane_information(original_image, roi_image, minv, correction):
     deg, dist, deviation, color_warp = draw_lane_lines(roi_image, minv, draw_info)
     result = add_img_weighted(original_image, color_warp, minv)
 
-    flag = dist > _DIST_ERROR_RANGE
-    deg = deg if flag else 0
+    flag = True
+    # flag = dist > _DIST_ERROR_RANGE
+    # deg = deg if flag else 0
 
     direction = "LEFT" if ((deg < _DEG_ERROR_RANGE * -1) and flag) \
         else ("RIGHT" if ((deg > _DEG_ERROR_RANGE) and flag)
@@ -97,13 +96,18 @@ def get_lane_information(original_image, roi_image, minv, correction):
 
 
 def main():
+    # TODO 차량 연결 시, 활성화
+    isTest = False
+
     speed = 0
     correction = 0
     deg = 90
-    # TODO 차량 연결 시, 활성화
-    connection = make_serial_connection()
-    # MEMO 웹캠 정보 가져오    기
-    cap = cv2.VideoCapture(0)
+
+    if isTest:
+        connection = make_serial_connection()
+    # MEMO 웹캠 정보 가져오기
+    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("./video/result.avi")
     # cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
@@ -124,11 +128,10 @@ def main():
     while True:
         # TODO 프레임 수정 필요
         ret, img = cap.read()
-        key = cv2.waitKey(30)
+        key = cv2.waitKey(100)
 
         # MEMO 해상도에 따라 이미지 리사이징 필요
         # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
-        print(img.shape)
         if not ret:
             break
 
@@ -194,11 +197,13 @@ def main():
         cv2.putText(result, f"Deg_corr : {correction}", (left, top + 100),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
-        # TODO 차량 연결 시, 활성화
+        # 차선 인식 값이 튀어, 갑자기 방향 전환되는 것을 방지
         # print(deg)
         if abs(deg) > 10:
             deg = 10 if deg > 0 else -10
-        write_signal(connection, speed, deg)
+
+        if isTest:
+            write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
 
         if key & 0xFF == ord("q"):
