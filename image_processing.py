@@ -24,7 +24,7 @@ def set_img_marker(image):
     position = np.array([
         # (w * 0.02, h * 0.9), (w * 0.22, h * 0.2), (w * 0.98, h * 0.9), (w * 0.78, h * 0.2)
         # (w * 0.00, h * 0.6), (w * 0.21, h * 0.3), (w * 0.97, h * 0.6), (w * 0.78, h * 0.3)
-        (w * 0.00, h * 0.6), (w * 0.43, h * 0.1), (w * 0.97, h * 0.6), (w * 0.7, h * 0.1)
+        (w * 0.02, h * 0.55), (w * 0.35, h * 0.1), (w * 0.98, h * 0.55), (w * 0.65, h * 0.1)
     ])
     # MEMO 영상 테스트용
     # position = np.array([
@@ -106,7 +106,7 @@ def tmp(img_color):
 def make_filtering_img(image):
     g_blur_size = 15
     m_blur_size = 31
-    thresh = 170
+    thresh = 175
 
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     g_blur_img = cv2.GaussianBlur(gray_img, (g_blur_size, g_blur_size), 0)

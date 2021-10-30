@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import math
 import time
+import matplotlib.pyplot as plt
 
 _RED = (255, 0, 0)
 _GREEN = (0, 255, 0)
@@ -69,6 +70,18 @@ def get_lane_slope(image, left_current, right_current):
 
     ltx = np.trunc(left_fitx)
     rtx = np.trunc(right_fitx)
+
+    # out_img[nonzero_y[left_lane], nonzero_x[left_lane]] = [255, 0, 0]
+    # out_img[nonzero_y[right_lane], nonzero_x[right_lane]] = [0, 0, 255]
+    #
+    # plt.imshow(out_img)
+    # plt.plot(left_fitx, ploty, color='red')
+    # plt.plot(right_fitx, ploty, color='blue')
+    # plt.xlim(0, 720)
+    # plt.ylim(440, 0)
+    # plt.show(block=False)
+    # plt.pause(0.001)
+    # plt.cla()
 
     ret = {'left_fitx': ltx, 'right_fitx': rtx, 'ploty': ploty}
 

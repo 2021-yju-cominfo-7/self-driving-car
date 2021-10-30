@@ -17,6 +17,7 @@ def make_image(image, flag):
     filter_img = make_filtering_img(wrap_img)
     roi_img = set_roi_area(filter_img)
 
+    # cv2.imshow("1111", mark_img)
     cv2.imshow("filter", roi_img)
     cv2.imshow("roi", set_roi_area(wrap_img))
 
@@ -25,7 +26,7 @@ def make_image(image, flag):
 
 def get_lane_information(original_image, roi_image, minv, correction):
     _DEG_ERROR_RANGE = 1
-    _DIST_ERROR_RANGE = 5
+    _DIST_ERROR_RANGE = 3
     _DEVIATION_ERROR_RANGE = int(original_image.shape[1] / 10)
 
     left, right = find_lane(roi_image)
@@ -44,9 +45,9 @@ def get_lane_information(original_image, roi_image, minv, correction):
     deg, dist, deviation, color_warp = draw_lane_lines(roi_image, minv, draw_info)
     result = add_img_weighted(original_image, color_warp, minv)
 
-    flag = True
-    # flag = dist > _DIST_ERROR_RANGE
-    # deg = deg if flag else 0
+    # flag = True
+    flag = dist > _DIST_ERROR_RANGE
+    deg = deg if flag else 0
 
     direction = "LEFT" if ((deg < _DEG_ERROR_RANGE * -1) and flag) \
         else ("RIGHT" if ((deg > _DEG_ERROR_RANGE) and flag)
@@ -113,6 +114,14 @@ def main():
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
     winname = "result"
 
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+    file_name = time.strftime('[%Y-%m-%d]_%H-%M-%S', time.localtime(time.time())) + ".avi"
+
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    out = cv2.VideoWriter(f"./test-log/{file_name}", fourcc, 30.0, (int(width), int(height)))
+
     cv2.namedWindow(winname)
     cv2.namedWindow("roi")
     cv2.namedWindow("filter")
@@ -128,8 +137,9 @@ def main():
     while True:
         # TODO 프레임 수정 필요
         ret, img = cap.read()
-        key = cv2.waitKey(100)
+        key = cv2.waitKey(30)
 
+        # img = cv2.imread("./img/cam_img.jpg")
         # MEMO 해상도에 따라 이미지 리사이징 필요
         # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
         if not ret:
@@ -178,11 +188,11 @@ def main():
 
             # MEMO 한 쪽 차선이 인식되지 않을 경우 예외처리
             if exp_msg == "LINE_L":
-                # print("------차를 왼쪽으로 틉니다------")
+                print("------차를 왼쪽으로 틉니다------")
                 deg -= 1.8
 
             elif exp_msg == "LINE_R":
-                # print("------차를 오른쪽으로 틉니다------")
+                print("------차를 오른쪽으로 틉니다------")
                 deg += 1.8
 
         order_msg = check_order(speed, deg)
@@ -205,11 +215,13 @@ def main():
         if isTest:
             write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
+        out.write(result)
 
         if key & 0xFF == ord("q"):
             break
 
     cap.release()
+    out.release()
     cv2.destroyAllWindows()
 
 
