@@ -2,6 +2,7 @@ import cv2
 from image_processing import set_img_marker, make_wrapping_img, make_filtering_img, tmp, set_roi_area
 from lane_detection import find_lane, get_lane_slope, draw_lane_lines, add_img_weighted
 from serial_arduino import make_serial_connection, write_signal, check_order
+from lidar_controller import make_connection, sensing_lidar
 import time
 
 
@@ -98,17 +99,19 @@ def get_lane_information(original_image, roi_image, minv, correction):
 
 def main():
     # TODO 차량 연결 시, 활성화
-    isTest = False
+    isTest = True
 
     speed = 0
     correction = 0
+    laser, scan = 0, 0
     deg = 90
 
     if isTest:
         connection = make_serial_connection()
+        laser, scan = make_connection()
     # MEMO 웹캠 정보 가져오기
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("./video/result.avi")
+    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture("./video/result.avi")
     # cap = cv2.VideoCapture("./video/ex3.mp4")
     # cap = cv2.VideoCapture("./video/ex3_left-side.mp4")
     # cap = cv2.VideoCapture("./video/ex3_right-side.mp4")
@@ -132,13 +135,14 @@ def main():
     cv2.moveWindow("wrap", 850, 550)
 
     start_flag = False
+    sensing_flag = False
     filter_flag = True
+    true_count = 0
 
     while True:
         # TODO 프레임 수정 필요
         ret, img = cap.read()
         key = cv2.waitKey(30)
-
         # img = cv2.imread("./img/cam_img.jpg")
         # MEMO 해상도에 따라 이미지 리사이징 필요
         # img = cv2.resize(img, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
@@ -164,18 +168,52 @@ def main():
         if speed < 9:
             speed = 0
 
+        result = sensing_lidar(laser, scan)
+        
+        if result:
+            if true_count < 0:
+                true_count = 0
+            else:
+                true_count += 1
+        else:
+            if true_count <= 0:
+                true_count -= 1
+            else:
+                true_count = 0
+
+        if true_count >= 5:
+            sensing_flag = True
+            # print("start")
+        elif true_count <= -3:
+            sensing_flag = False
+            # print("stop")
+        # else:
+        #     print("wait") 
+
+        # TODO REMOVE filter_flag
         filter_flag = False if filter_flag else True
         minv, roi_img = make_image(img, filter_flag)
 
         (h, w) = (img.shape[0], img.shape[1])
         cv2.line(img, (int(w / 2), 0), (int(w / 2), h), (255, 0, 0), 10)
 
-        if not start_flag:
+        # if not start_flag:
+        #     speed = 0
+
+        # if not sensing_flag and speed > 0:
+            # speed = 0
+
+        car_flag = start_flag and sensing_flag
+        # print(car_flag)
+
+        if not car_flag:
             speed = 0
 
         try:
             result, is_curved, deg = get_lane_information(img, roi_img, minv, correction)
-            if start_flag:
+            
+            # TODO IF is not curved car speed up
+            if car_flag:
                 speed = 9 if is_curved else 9
         except Exception as e:
             exp_msg = e.args[0]
@@ -183,7 +221,7 @@ def main():
             result = img
 
             # print("------차량 속도를 낮춥니다------")
-            if start_flag:
+            if car_flag:
                 speed = 9
 
             # MEMO 한 쪽 차선이 인식되지 않을 경우 예외처리
@@ -212,6 +250,8 @@ def main():
         if abs(deg) > 10:
             deg = 10 if deg > 0 else -10
 
+        # print(speed)5
+
         if isTest:
             write_signal(connection, speed, deg)
         cv2.imshow(winname, result)
@@ -219,6 +259,9 @@ def main():
 
         if key & 0xFF == ord("q"):
             break
+
+    laser.turnOff()
+    laser.disconnecting()
 
     cap.release()
     out.release()
